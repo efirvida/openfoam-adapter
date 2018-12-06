@@ -26,38 +26,35 @@ namespace preciceAdapter {
             //- Force field
             Foam::volVectorField *Force_;
 
-            //- Patches to integrate forces over
-            labelHashSet patchSet_;
-
-            //- Name of pressure field
-            word pName_;
-
-            //- Name of velocity field
-            word UName_;
-
-            //- Name of density field (optional)
-            word rhoName_;
-
-            //- Is the force density being supplied directly?
-            Switch directForceDensity_;
-
-            //- The name of the force density (fD) field
-            word fDName_;
-
             //- Reference density needed for incompressible calculations
             Foam::scalar rhoRef_;
 
-            //- Reference pressure
-            Foam::scalar pRef_;
+            //- Name of the transport properties dict
+            std::string nameTransportProperties_ = "transportProperties";
 
-            //- Coordinate system used when evaluating forces/moments
-            coordinateSystem coordSys_;
+            //- Name of density field for incompresible solver
+            std::string nameRhoInf_ = "rhoInf";
 
-            //- Flag to indicate whether we are using a local co-ordinate sys
-            bool localSystem_;
+            //- Name of density field (optional)
+            std::string nameRho_ = "rho";
+
+            //- Name of the viscosity
+            std::string nameNu_ = "nu";
+
+            //- Name of pressure field
+            const std::string nameP_;
+
+            //- Name of velocity field
+            const std::string nameU_;
+
+            //- The name of the force density (fD) field
+            const std::string namefD_;
+
+            //- Is the force density being supplied directly?
+            const bool directForceDensity_;
 
             //- Flag to include porosity effects
-            bool porosity_;
+            const bool porosity_;
 
             //- Initialised flag
             bool initialised_;
@@ -92,20 +89,24 @@ namespace preciceAdapter {
                 const vectorField &fT,
                 const vectorField &fP);
 
-          public:
+        public:
 
             //- Constructor
-            Force
-                    (
-                            const Foam::fvMesh &mesh,
-                            const fileName &timeName // We create an IOobject and we need the time directory
-                            /* TODO: We should add any required field names here.
-                            /  They would need to be vector fields.
-                            /  See CHT/Temperature.H for details.
-                            /  Apply any changes also to Force.C.
-                            */
-                    );
+            Force(
+                const Foam::fvMesh &mesh,
+                const fileName &timeName, // We create an IOobject and we need the time directory
+                const std::string nameP,
+                const std::string nameU,
+                const std::string namefD,
+                const bool directForceDensity,
+                const bool porosity 
 
+                /* TODO: We should add any required field names here.
+                /  They would need to be vector fields.
+                /  See CHT/Temperature.H for details.
+                /  Apply any changes also to Force.C.
+                */
+            );  
 
             //- Calculate the forces and moments
             virtual void calcForcesMoment();

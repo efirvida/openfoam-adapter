@@ -10,14 +10,24 @@ using namespace Foam;
 preciceAdapter::FSI::Force::Force
 (
     const Foam::fvMesh& mesh,
-    const fileName& timeName
+    const fileName& timeName,
+    const std::string nameP,
+    const std::string nameU,
+    const std::string namefD,
+    const bool directForceDensity,
+    const bool porosity 
     /* TODO: We should add any required field names here.
     /  They would need to be vector fields.
     /  See CHT/Temperature.C for details.
     */
 )
 :
-mesh_(mesh)
+mesh_(mesh),
+nameP_(nameP),
+nameU_(nameU),
+namefD_(namefD),
+directForceDensity_(directForceDensity),
+porosity_(porosity)
 {
     dataType_ = vector;
 
@@ -58,31 +68,31 @@ Foam::tmp<Foam::volSymmTensorField> preciceAdapter::FSI::Force::devRhoReff() con
                 const fluidThermo &thermo =
                     mesh_.lookupObject<fluidThermo>(fluidThermo::dictName);
 
-                const volVectorField &U = mesh_.lookupObject<volVectorField>(UName_);
+                const volVectorField &U = mesh_.lookupObject<volVectorField>(nameU_);
 
                 return -thermo.mu() * dev(twoSymm(fvc::grad(U)));
         }
         else if (
-            mesh_.foundObject<transportModel>("transportProperties"))
+            mesh_.foundObject<transportModel>(nameTransportProperties_))
         {
                 const transportModel &laminarT =
-                    mesh_.lookupObject<transportModel>("transportProperties");
+                    mesh_.lookupObject<transportModel>(nameTransportProperties_);
 
-                const volVectorField &U = mesh_.lookupObject<volVectorField>(UName_);
+                const volVectorField &U = mesh_.lookupObject<volVectorField>(nameU_);
 
                 return -rho() * laminarT.nu() * dev(twoSymm(fvc::grad(U)));
         }
-        else if (mesh_.foundObject<dictionary>("transportProperties"))
+        else if (mesh_.foundObject<dictionary>(nameTransportProperties_))
         {
                 const dictionary &transportProperties =
-                    mesh_.lookupObject<dictionary>("transportProperties");
+                    mesh_.lookupObject<dictionary>(nameTransportProperties_);
 
                 dimensionedScalar nu(
-                    "nu",
+                    nameNu_,
                     dimViscosity,
-                    transportProperties.lookup("nu"));
+                    transportProperties.lookup(nameNu_));
 
-                const volVectorField &U = mesh_.lookupObject<volVectorField>(UName_);
+                const volVectorField &U = mesh_.lookupObject<volVectorField>(nameU_);
 
                 return -rho() * nu * dev(twoSymm(fvc::grad(U)));
         }
@@ -98,59 +108,52 @@ Foam::tmp<Foam::volSymmTensorField> preciceAdapter::FSI::Force::devRhoReff() con
 
 Foam::tmp<Foam::volScalarField> preciceAdapter::FSI::Force::mu() const
 {
-        if (mesh_.foundObject<fluidThermo>(basicThermo::dictName))
-        {
-                const fluidThermo &thermo =
-                    mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
+    if (mesh_.foundObject<fluidThermo>(basicThermo::dictName))
+    {
+        const fluidThermo &thermo = mesh_.lookupObject<fluidThermo>(basicThermo::dictName);
 
-                return thermo.mu();
-        }
-        else if (
-            mesh_.foundObject<transportModel>("transportProperties"))
-        {
-                const transportModel &laminarT =
-                    mesh_.lookupObject<transportModel>("transportProperties");
+        return thermo.mu();
+    }
+    else if (mesh_.foundObject<transportModel>(nameTransportProperties_))
+    {
+        const transportModel &laminarT = mesh_.lookupObject<transportModel>(nameTransportProperties_);
 
-                return rho() * laminarT.nu();
-        }
-        else if (mesh_.foundObject<dictionary>("transportProperties"))
-        {
-                const dictionary &transportProperties =
-                    mesh_.lookupObject<dictionary>("transportProperties");
+        return rho() * laminarT.nu();
+    }
+    else if (mesh_.foundObject<dictionary>(nameTransportProperties_))
+    {
+        const dictionary &transportProperties = mesh_.lookupObject<dictionary>(nameTransportProperties_);
 
-                dimensionedScalar nu(
-                    "nu",
-                    dimViscosity,
-                    transportProperties.lookup("nu"));
+        dimensionedScalar nu(nameNu_, dimViscosity, transportProperties.lookup(nameNu_));
 
-                return rho() * nu;
-        }
-        else
-        {
-                FatalErrorInFunction
-                    << "No valid model for dynamic viscosity calculation"
-                    << exit(FatalError);
+        return rho() * nu;
+    }
+    else
+    {
+        FatalErrorInFunction
+            << "No valid model for dynamic viscosity calculation"
+            << exit(FatalError);
 
-                return volScalarField::null();
-        }
+        return volScalarField::null();
+    }
 }
 
 Foam::tmp<Foam::volScalarField> preciceAdapter::FSI::Force::rho() const
 {
-    if (rhoName_ == "rhoInf")
+    if (nameRho_ == nameRhoInf_)
     {
         return tmp<volScalarField>(
             new volScalarField(
                 IOobject(
-                    "rho",
+                    nameRho_,
                     mesh_.time().timeName(),
                     mesh_),
                 mesh_,
-                dimensionedScalar("rho", dimDensity, rhoRef_)));
+                dimensionedScalar(nameRho_, dimDensity, rhoRef_)));
     }
     else
     {
-        return (mesh_.lookupObject<volScalarField>(rhoName_));
+        return (mesh_.lookupObject<volScalarField>(nameRho_));
     }
 }
 
@@ -158,18 +161,18 @@ Foam::scalar preciceAdapter::FSI::Force::rho(const volScalarField &p) const
 {
         if (p.dimensions() == dimPressure)
         {
-                return 1.0;
+            return 1.0;
         }
         else
         {
-                if (rhoName_ != "rhoInf")
-                {
-                        FatalErrorInFunction
-                            << "Dynamic pressure is expected but kinematic is provided."
-                            << exit(FatalError);
-                }
+            if (nameRho_ != nameRhoInf_)
+            {
+                FatalErrorInFunction
+                    << "Dynamic pressure is expected but kinematic is provided."
+                    << exit(FatalError);
+            }
 
-                return rhoRef_;
+            return rhoRef_;
         }
 }
 
@@ -179,9 +182,7 @@ void preciceAdapter::FSI::Force::addToFields(
     const vectorField &fT,
     const vectorField &fP)
 {
-        volVectorField &force =
-            const_cast<volVectorField &>(
-                mesh_.lookupObject<volVectorField>("Force"));
+        volVectorField &force = const_cast<volVectorField &>(mesh_.lookupObject<volVectorField>("Force"));
 
         vectorField &pf = force.boundaryFieldRef()[patchID];
         pf += fN + fT + fP;
@@ -203,131 +204,119 @@ void preciceAdapter::FSI::Force::addToFields(
     {
         label celli = cellIDs[i];
         force[celli] += fN[i] + fT[i] + fP[i];
-        }
+    }
 }
 
 void preciceAdapter::FSI::Force::calcForcesMoment()
 {
-        Force_[0] = Foam::vector::zero;
-        Force_[1] = Foam::vector::zero;
-        Force_[2] = Foam::vector::zero;
+    Force_[0] = Foam::vector::zero;
+    Force_[1] = Foam::vector::zero;
+    Force_[2] = Foam::vector::zero;
 
-        if (mesh_.foundObject<transportModel>("transportProperties"))
+    if (mesh_.foundObject<transportModel>(nameTransportProperties_))
+    {
+        nameRho_ = nameRhoInf_;
+        const dictionary &transportProperties = mesh_.lookupObject<IOdictionary>(nameTransportProperties_);
+
+        dimensionedScalar rhoRef_(
+            nameRho_,
+            dimDensity,
+            transportProperties.lookup(nameRho_));
+    }
+    
+    if (directForceDensity_)
+    {
+        const volVectorField &fD = mesh_.lookupObject<volVectorField>(namefD_);
+
+        const surfaceVectorField::Boundary &Sfb = mesh_.Sf().boundaryField();
+
+        for (uint j = 0; j < patchIDs_.size(); j++)
         {
-            rhoName_ = "rhoInf";
-            const dictionary &transportProperties =
-                mesh_.lookupObject<IOdictionary>("transportProperties");
+            int patchID = patchIDs_.at(j);
 
-            dimensionedScalar rhoRef_(
-                "rho",
-                dimDensity,
-                transportProperties.lookup("rho"));
+            scalarField sA(mag(Sfb[patchID]));
+
+            // Normal force = surfaceUnitNormal*(surfaceNormal & forceDensity)
+            vectorField fN(Sfb[patchID] / sA * (Sfb[patchID] & fD.boundaryField()[patchID]));
+
+            // Tangential force (total force minus normal fN)
+            vectorField fT(sA * fD.boundaryField()[patchID] - fN);
+
+            //- Porous force
+            vectorField fP(fT.size(), Zero);
+
+            addToFields(patchID, fN, fT, fP);
         }
-        
-        if (directForceDensity_)
+    }
+    else
+    {
+        const volScalarField &p = mesh_.lookupObject<volScalarField>(nameP_);
+
+        const surfaceVectorField::Boundary &Sfb = mesh_.Sf().boundaryField();
+
+        tmp<volSymmTensorField> tdevRhoReff = devRhoReff();
+        const volSymmTensorField::Boundary &devRhoReffb = tdevRhoReff().boundaryField();
+
+        for (uint j = 0; j < patchIDs_.size(); j++)
         {
-                const volVectorField &fD = mesh_.lookupObject<volVectorField>(fDName_);
+            int patchID = patchIDs_.at(j);
 
-                const surfaceVectorField::Boundary &Sfb =
-                    mesh_.Sf().boundaryField();
+            vectorField fN(rho(p) * Sfb[patchID] * (p.boundaryField()[patchID]));
 
-                forAllConstIter(labelHashSet, patchSet_, iter)
-                {
-                        label patchID = iter.key();
+            vectorField fT(Sfb[patchID] & devRhoReffb[patchID]);
 
+            vectorField fP(fT.size(), Zero);
 
-                        scalarField sA(mag(Sfb[patchID]));
-
-                        // Normal force = surfaceUnitNormal*(surfaceNormal & forceDensity)
-                        vectorField fN(
-                            Sfb[patchID] / sA * (Sfb[patchID] & fD.boundaryField()[patchID]));
-
-                        // Tangential force (total force minus normal fN)
-                        vectorField fT(sA * fD.boundaryField()[patchID] - fN);
-
-                        //- Porous force
-                        vectorField fP(fT.size(), Zero);
-
-                        addToFields(patchID, fN, fT, fP);
-                }
+            addToFields(patchID, fN, fT, fP);
         }
-        else
+    }
+
+    if (porosity_)
+    {
+        const volVectorField &U = mesh_.lookupObject<volVectorField>(nameU_);
+        const volScalarField rho(this->rho());
+        const volScalarField mu(this->mu());
+
+        const HashTable<const porosityModel *> models = mesh_.lookupClass<porosityModel>();
+
+        if (models.empty())
         {
-                const volScalarField &p = mesh_.lookupObject<volScalarField>(pName_);
-
-                const surfaceVectorField::Boundary &Sfb =
-                    mesh_.Sf().boundaryField();
-
-                tmp<volSymmTensorField> tdevRhoReff = devRhoReff();
-                const volSymmTensorField::Boundary &devRhoReffb = tdevRhoReff().boundaryField();
-
-                // Scale pRef by density for incompressible simulations
-                Foam::scalar pRef = pRef_ / rho(p);
-
-                forAllConstIter(labelHashSet, patchSet_, iter)
-                {
-                        label patchID = iter.key();
-
-                        vectorField fN(
-                            rho(p) * Sfb[patchID] * (p.boundaryField()[patchID] - pRef));
-
-                        vectorField fT(Sfb[patchID] & devRhoReffb[patchID]);
-
-                        vectorField fP(fT.size(), Zero);
-
-                        addToFields(patchID, fN, fT, fP);
-                }
-        }
-
-        if (porosity_)
-        {
-                const volVectorField &U = mesh_.lookupObject<volVectorField>(UName_);
-                const volScalarField rho(this->rho());
-                const volScalarField mu(this->mu());
-
-                const HashTable<const porosityModel *> models =
-                    mesh_.lookupClass<porosityModel>();
-
-                if (models.empty())
-                {
-                        WarningInFunction
-                            << "Porosity effects requested, but no porosity models found "
-                            << "in the database"
-                            << endl;
-                }
-
-                forAllConstIter(HashTable<const porosityModel *>, models, iter)
-                {
-                        // non-const access required if mesh is changing
-                        porosityModel &pm = const_cast<porosityModel &>(*iter());
-
-                        vectorField fPTot(pm.force(U, rho, mu));
-
-                        const labelList &cellZoneIDs = pm.cellZoneIDs();
-
-                        forAll(cellZoneIDs, i)
-                        {
-                                label zoneI = cellZoneIDs[i];
-                                const cellZone &cZone = mesh_.cellZones()[zoneI];
-
-                                const vectorField d(mesh_.C(), cZone);
-                                const vectorField fP(fPTot, cZone);
-
-                                const vectorField fDummy(fP.size(), Zero);
-
-                                addToFields(cZone, fDummy, fDummy, fP);
-                        }
-                }
+            WarningInFunction
+                << "Porosity effects requested, but no porosity models found "
+                << "in the database"
+                << endl;
         }
 
+        forAllConstIter(HashTable<const porosityModel *>, models, iter)
+        {
+            // non-const access required if mesh is changing
+            porosityModel &pm = const_cast<porosityModel &>(*iter());
+
+            vectorField fPTot(pm.force(U, rho, mu));
+
+            const labelList &cellZoneIDs = pm.cellZoneIDs();
+
+            forAll(cellZoneIDs, i)
+            {
+                label zoneI = cellZoneIDs[i];
+                const cellZone &cZone = mesh_.cellZones()[zoneI];
+
+                const vectorField d(mesh_.C(), cZone);
+                const vectorField fP(fPTot, cZone);
+
+                const vectorField fDummy(fP.size(), Zero);
+
+                addToFields(cZone, fDummy, fDummy, fP);
+            }
+        }
+    }
 }
 
 void preciceAdapter::FSI::Force::write(double *buffer)
 {
-        calcForcesMoment();
+    calcForcesMoment();
 
-        mesh_.lookupObject<volVectorField>("Force").write();
-
+    mesh_.lookupObject<volVectorField>("Force").write();
 }
 
 void preciceAdapter::FSI::Force::read(double *buffer)
