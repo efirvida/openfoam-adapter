@@ -4,13 +4,12 @@ Interface.C
 
 CouplingDataUser.C
 
+CHT/CHT.C
 CHT/Temperature.C
 CHT/KappaEffective.C
 CHT/HeatFlux.C
 CHT/HeatTransferCoefficient.C
 CHT/SinkTemperature.C
-
-CHT/CHT.C
 
 FSI/FSI.C
 FSI/Force.C
