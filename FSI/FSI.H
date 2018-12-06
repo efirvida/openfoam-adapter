@@ -14,51 +14,63 @@
 
 namespace preciceAdapter
 {
-namespace FSI
-{
+    namespace FSI
+    {
 
-class FluidStructureInteraction
-{
+    class FluidStructureInteraction
+    {
+        protected:
 
-protected:
+            //- OpenFOAM fvMesh object
+            const Foam::fvMesh& mesh_;
 
-    //- OpenFOAM fvMesh object
-    const Foam::fvMesh& mesh_;
+            //- OpenFOAM Time object (we need to access the timestep to compute the pointMotionU)
+            const Foam::Time& runTime_;
 
-    //- OpenFOAM Time object (we need to access the timestep to compute the pointMotionU)
-    const Foam::Time& runTime_;
+            //- Name of the pointDisplacement field
+            std::string namePointDisplacement_ = "pointDisplacement";
 
-    //- Name of the pointDisplacement field
-    std::string namePointDisplacement_ = "pointDisplacement";
+            //- Name of pressure field
+            std::string nameP_ = "p";
 
-    /* TODO: Declare here any parameters that should be read from
-    /  the configuration file. See CHT/CHT.H for reference.
-    /  We want to support in-house solvers with different field names,
-    /  so make sure to declare these here.
-    */
+            //- Name of velocity field
+            std::string nameU_ = "U";
 
-protected:
+            //- The name of the force density (fD) field
+            std::string namefD_ = "fD";
 
-    //- Read the FSI-related options from the adapter's configuration file
-    bool readConfig(const YAML::Node adapterConfig);
+            //- Is the force density being supplied directly?
+            bool directForceDensity_ = false;
 
-public:
+            //- Flag to include porosity effects
+            bool porosity_ = false;
 
-    //- Constructor
-    //  We need also the runTime to access the timeName and the deltaT
-    FluidStructureInteraction(const Foam::fvMesh& mesh, const Foam::Time& runTime);
+            /* TODO: Declare here any parameters that should be read from
+            /  the configuration file. See CHT/CHT.H for reference.
+            /  We want to support in-house solvers with different field names,
+            /  so make sure to declare these here.
+            */
 
-    //- Configure
-    bool configure(const YAML::Node adapterConfig);
+            //- Read the FSI-related options from the adapter's configuration file
+            bool readConfig(const YAML::Node adapterConfig);
 
-    //- Add coupling data writers
-    void addWriters(std::string dataName, Interface * interface);
+        public:
 
-    //- Add coupling data readers
-    void addReaders(std::string dataName, Interface * interface);
-};
+            //- Constructor
+            //  We need also the runTime to access the timeName and the deltaT
+            FluidStructureInteraction(const Foam::fvMesh& mesh, const Foam::Time& runTime);
 
-}
+            //- Configure
+            bool configure(const YAML::Node adapterConfig);
+
+            //- Add coupling data writers
+            void addWriters(std::string dataName, Interface * interface);
+
+            //- Add coupling data readers
+            void addReaders(std::string dataName, Interface * interface);
+        };
+
+    }
 }
 
 #endif

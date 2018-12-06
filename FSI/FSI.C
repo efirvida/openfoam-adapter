@@ -46,6 +46,38 @@ bool preciceAdapter::FSI::FluidStructureInteraction::readConfig(const YAML::Node
     }
     DEBUG(adapterInfo("    pointDisplacement field name : " + namePointDisplacement_));
 
+    if (adapterConfig["p"])
+    {
+        nameP_ = adapterConfig["p"].as<std::string>();
+    }
+    DEBUG(adapterInfo("    Pressure field name : " + nameP_));
+
+    if (adapterConfig["U"])
+    {
+        nameU_ = adapterConfig["U"].as<std::string>();
+    }
+    DEBUG(adapterInfo("    pointDisplacement field name : " + nameU_));
+
+    if (adapterConfig["porosity"])
+    {
+        porosity_ = adapterConfig["porosity"].as<bool>();
+    }
+    DEBUG(adapterInfo("    porosity enabled : " + porosity_));
+
+    if (adapterConfig["directForceDensity"])
+    {
+        directForceDensity_ = adapterConfig["directForceDensity"].as<bool>();
+    }
+    DEBUG(adapterInfo("    force density field being supplied: " + directForceDensity_));
+
+    if (directForceDensity_ && adapterConfig["fD"])
+    {
+        namefD_ = adapterConfig["fD"].as<std::string>();
+        DEBUG(adapterInfo("    force density (fD) field name : " + namefD_));
+    } else {
+        FatalErrorInFunction << "    force density field name has to be provided" << exit(FatalError);
+    }
+
     return true;
 }
 
@@ -60,8 +92,16 @@ void preciceAdapter::FSI::FluidStructureInteraction::addWriters(std::string data
     {
         interface->addCouplingDataWriter
         (
-            dataName,
-            new Force(mesh_, runTime_.timeName()) /* TODO: Add any other arguments here */
+            dataName, new Force(
+                mesh_, 
+                runTime_.timeName(),
+                nameP_,
+                nameU_,
+                namefD_,
+                directForceDensity_,
+                porosity_
+            ) 
+            /* TODO: Add any other arguments here */
         );
         DEBUG(adapterInfo("Added writer: Force."));
     }
@@ -106,8 +146,15 @@ void preciceAdapter::FSI::FluidStructureInteraction::addReaders(std::string data
     {
         interface->addCouplingDataReader
         (
-            dataName,
-            new Force(mesh_, runTime_.timeName()) /* TODO: Add any other arguments here */
+            dataName, new Force(
+                mesh_, 
+                runTime_.timeName(),
+                nameP_,
+                nameU_,
+                namefD_,
+                directForceDensity_,
+                porosity_
+            ) /* TODO: Add any other arguments here */
         );
         DEBUG(adapterInfo("Added reader: Force."));
     }
