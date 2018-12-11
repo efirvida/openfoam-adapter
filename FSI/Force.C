@@ -218,10 +218,7 @@ void preciceAdapter::FSI::Force::calcForcesMoment()
         nameRho_ = nameRhoInf_;
         const dictionary &transportProperties = mesh_.lookupObject<IOdictionary>(nameTransportProperties_);
 
-        dimensionedScalar rhoRef_(
-            nameRho_,
-            dimDensity,
-            transportProperties.lookup(nameRho_));
+        transportProperties.lookup(nameRho_) >> rhoRef_;
     }
     
     if (directForceDensity_)
