@@ -64,19 +64,17 @@ bool preciceAdapter::FSI::FluidStructureInteraction::readConfig(const YAML::Node
     }
     DEBUG(adapterInfo("    porosity enabled : " + porosity_));
 
-    if (adapterConfig["directForceDensity"])
+    if (adapterConfig["directForceDensity"] && adapterConfig["fD"])
     {
         directForceDensity_ = adapterConfig["directForceDensity"].as<bool>();
-    }
-    DEBUG(adapterInfo("    force density field being supplied: " + directForceDensity_));
-
-    if (directForceDensity_ && adapterConfig["fD"])
-    {
         namefD_ = adapterConfig["fD"].as<std::string>();
+        DEBUG(adapterInfo("    force density field being supplied: " + directForceDensity_));
         DEBUG(adapterInfo("    force density (fD) field name : " + namefD_));
-    } else {
-        FatalErrorInFunction << "    force density field name has to be provided" << exit(FatalError);
     }
+    else if (adapterConfig["directForceDensity"] && !adapterConfig["fD"])
+    {
+        FatalErrorInFunction << "    force density field name has to be provided" << exit(FatalError);
+    } 
 
     return true;
 }
