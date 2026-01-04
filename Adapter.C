@@ -49,11 +49,6 @@ void preciceAdapter::Adapter::configFileRead()
         DEBUG(adapterInfo("  - " + module + "\n"));
 
         // Set the modules switches
-        if (module == "CHT")
-        {
-            CHTenabled_ = true;
-        }
-
         if (module == "FSI")
         {
             FSIenabled_ = true;
@@ -155,19 +150,6 @@ void preciceAdapter::Adapter::configFileRead()
 
     // NOTE: set the switch for your new module here
 
-    // If the CHT module is enabled, create it, read the
-    // CHT-specific options and configure it.
-    if (CHTenabled_)
-    {
-        CHT_ = new CHT::ConjugateHeatTransfer(mesh_);
-        if (!CHT_->configure(preciceDict))
-        {
-            adapterInfo("There was an error while configuring the CHT module",
-                        "error");
-            return;
-        }
-    }
-
     // If the FSI module is enabled, create it, read the
     // FSI-specific options and configure it.
     if (FSIenabled_)
@@ -180,7 +162,7 @@ void preciceAdapter::Adapter::configFileRead()
                 adapterInfo(
                     "You have requested mesh connectivity (most probably for nearest-projection mapping) "
                     "and you have enabled the FSI module. "
-                    "Mapping with connectivity information is not implemented for FSI, only for CHT-related fields. "
+                    "Mapping with connectivity information is not implemented for FSI. "
                     "error");
                 return;
             }
@@ -208,7 +190,7 @@ void preciceAdapter::Adapter::configFileRead()
 
     // NOTE: Create your module and read any options specific to it here
 
-    if (!CHTenabled_ && !FSIenabled_ && !FFenabled_) // NOTE: Add your new switch here
+    if (!FSIenabled_ && !FFenabled_) // NOTE: Add your new switch here
     {
         adapterInfo("No module is enabled.", "error");
         return;
@@ -271,12 +253,6 @@ try
 
             unsigned int inModules = 0;
 
-            // Add CHT-related coupling data writers
-            if (CHTenabled_ && CHT_->addWriters(dataName, interface))
-            {
-                inModules++;
-            }
-
             // Add FSI-related coupling data writers
             if (FSIenabled_ && FSI_->addWriters(dataName, interface))
             {
@@ -311,9 +287,6 @@ try
             std::string dataName = interfacesConfig_.at(i).readData.at(j);
 
             unsigned int inModules = 0;
-
-            // Add CHT-related coupling data readers
-            if (CHTenabled_ && CHT_->addReaders(dataName, interface)) inModules++;
 
             // Add FSI-related coupling data readers
             if (FSIenabled_ && FSI_->addReaders(dataName, interface)) inModules++;
@@ -1660,14 +1633,6 @@ void preciceAdapter::Adapter::teardown()
         // NOTE: Add here delete for other types, if needed
 
         checkpointing_ = false;
-    }
-
-    // Delete the CHT module
-    if (NULL != CHT_)
-    {
-        DEBUG(adapterInfo("Destroying the CHT module..."));
-        delete CHT_;
-        CHT_ = NULL;
     }
 
     // Delete the FSI module

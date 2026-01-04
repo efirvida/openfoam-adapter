@@ -277,7 +277,7 @@ void preciceAdapter::Interface::configureMesh(const fvMesh& mesh, const std::str
                 // which defines edges and triangles on the interface. This connectivity information
                 // allows preCICE to provide a nearest-projection mapping.
                 // Since data is now related to nodes, volume fields (e.g. heat flux) needs to be
-                // interpolated in the data classes (e.g. CHT)
+                // interpolated in the data classes
 
                 // Define constants
                 const int triaPerQuad = 2;

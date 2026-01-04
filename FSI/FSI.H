@@ -48,7 +48,7 @@ protected:
     std::string nameOmegaField_ = "omega";
 
     /* TODO: Declare here any parameters that should be read from
-    /  the configuration file. See CHT/CHT.H for reference.
+    /  the configuration file.
     /  We want to support in-house solvers with different field names,
     /  so make sure to declare these here.
     */

@@ -3,9 +3,6 @@
 
 #include "Interface.H"
 
-// Conjugate Heat Transfer module
-#include "CHT/CHT.H"
-
 // Fluid-Structure Interaction module
 #include "FSI/FSI.H"
 
@@ -94,9 +91,6 @@ private:
     //- Should the (fixed) timestep be stored and used?
     bool useStoredTimestep_ = false;
 
-    //- Switch to enable the ConjugateHeatTransfer module
-    bool CHTenabled_ = false;
-
     //- Switch to enable the FluidStructureInteraction module
     bool FSIenabled_ = false;
 
@@ -113,9 +107,6 @@ private:
 
     //- preCICE solver interface initialized
     bool preciceInitialized_ = false;
-
-    //- Conjugate Heat Transfer module object
-    CHT::ConjugateHeatTransfer* CHT_ = NULL;
 
     //- Fluid-Structure Interaction module object
     FSI::FluidStructureInteraction* FSI_ = NULL;

@@ -107,7 +107,7 @@ bool preciceAdapter::FSI::FluidStructureInteraction::readConfig(const IOdictiona
     return true;
 }
 
-// NOTE: This is exactly the same as in the CHT module.
+// Determine the solver type based on the pressure field dimensions
 std::string preciceAdapter::FSI::FluidStructureInteraction::determineSolverType()
 {
     // NOTE: When coupling a different variable, you may want to
