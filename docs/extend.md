@@ -11,17 +11,17 @@ The OpenFOAM adapter separates the core functionality (e.g. calling preCICE meth
 
 ![simplified UML diagram](images/docs-adapter-openfoam-modules.png)
 
-While in the beginning the adapter only included a module for conjugate heat transfer, [a module for fluid-structure interaction](https://github.com/precice/openfoam-adapter/pull/56) and [a module for fluid-fluid coupling](https://github.com/precice/openfoam-adapter/pull/67) have been added since then.
+The adapter currently includes a module for fluid-structure interaction (FSI).
 
 ## Starting points
 
 In case you just want to couple a different variable, you need to create a new
-coupling data user class in the `preciceAdapter::CHT` namespace or in a new one.
+coupling data user class in the `preciceAdapter::FSI` namespace or in a new one.
 Then you need to add an option for it in the configuration part
 to add objects of it into the `couplingDataWriters` and `couplingDataReaders`
 whenever requested.
 
-There are some `NOTE`s in the files [Adapter.H](https://github.com/precice/openfoam-adapter/blob/master/Adapter.H), [Adapter.C](https://github.com/precice/openfoam-adapter/blob/master/Adapter.C), [CHT/CHT.C](https://github.com/precice/openfoam-adapter/blob/master/CHT/CHT.C), and [CHT/Temperature.H](https://github.com/precice/openfoam-adapter/blob/master/CHT/Temperature.H) to guide you through the process.
+There are some `NOTE`s in the files [Adapter.H](https://github.com/precice/openfoam-adapter/blob/master/Adapter.H), [Adapter.C](https://github.com/precice/openfoam-adapter/blob/master/Adapter.C), [FSI/FSI.C](https://github.com/precice/openfoam-adapter/blob/master/FSI/FSI.C), and [FSI/Displacement.H](https://github.com/precice/openfoam-adapter/blob/master/FSI/Displacement.H) to guide you through the process.
 
 _Note:_ make sure to include any additional required libraries in the `LIB_LIBS`
 section of the `Make/options`. Since the adapter is a shared library,

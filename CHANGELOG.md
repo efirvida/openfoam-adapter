@@ -23,12 +23,6 @@ Read more details in the issue [#52: Releases and versioning](https://github.com
 
 ### Added
 
-- Added a locationType for volume coupling and implemented the respective functionality (over all internal fields) for Pressure and Velocity (FF) and Temperature (FF) [#255](https://github.com/precice/openfoam-adapter/pull/255).
-- Added volume coupling over one or multiple domain regions specified by OpenFOAM cellSets (for Pressure and Velocity (FF) and Temperature (FF))[#270](https://github.com/precice/openfoam-adapter/pull/270).
-- Added phase variable and flux coupling for interFOAM in the FF module [#308](https://github.com/precice/openfoam-adapter/pull/308).
-- Added custom inletOutlet boundary conditions for pressure and velocity to the FF module [#281](https://github.com/precice/openfoam-adapter/pull/281).
-- Added temperature and temperature gradient as coupling data to the FF module [#281](https://github.com/precice/openfoam-adapter/pull/281).
-- Added option to write velocity that is corrected by the face flux `phi` [#281](https://github.com/precice/openfoam-adapter/pull/281).
 - Added a pre-commit hook to check formatting and linting of various aspects [#321](https://github.com/precice/openfoam-adapter/pull/321).
 - Added a workflow for triggering system regression tests [#309](https://github.com/precice/openfoam-adapter/pull/309).
 - Added citing guidelines, referring to the [new reference article at the OpenFOAM Journal](https://doi.org/10.51560/ofj.v3.88). [#287](https://github.com/precice/openfoam-adapter/pull/287)
@@ -73,7 +67,6 @@ Read more details in the issue [#52: Releases and versioning](https://github.com
 - Enabled mesh motion solvers that do not register a pointDisplacement field (such as the RBFMeshMotionSolver from solids4foam) to work with the adapter [#241](https://github.com/precice/openfoam-adapter/pull/241)
 - Added timers for tracking the time spent in the adapter and preCICE (disabled by default) [#256](https://github.com/precice/openfoam-adapter/pull/256).
 - Added a warning for trying to build without pkg-config being available and more suggestions for possible problems [#220](https://github.com/precice/openfoam-adapter/pull/220).
-- Added more documentation, specifically for configuring the FF module. [#254](https://github.com/precice/openfoam-adapter/pull/254)
 
 ### Changed
 
@@ -134,7 +127,6 @@ Read more details in the issue [#52: Releases and versioning](https://github.com
 
 - Support for reading displacements on face centers and further improved the 2D mode. [#147](https://github.com/precice/openfoam-adapter/pull/147)
 - Restrict the user in valid orientation of 2D cases with an assertion. [#155](https://github.com/precice/openfoam-adapter/pull/155)
-- New fluid-fluid coupling (FF) module. You can find a new [partitioned pipe tutorial on the website](https://precice.org/tutorials-partitioned-pipe.html). [#67](https://github.com/precice/openfoam-adapter/pull/67)
 
 ### Changed
 
