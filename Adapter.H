@@ -6,9 +6,6 @@
 // Fluid-Structure Interaction module
 #include "FSI/FSI.H"
 
-// Fluid-Fluid module
-#include "FF/FF.H"
-
 // NOTE: If you want to couple a new variable, include your module's header here.
 // You also need to include it in the Make/files file.
 // In case you use additional OpenFOAM symbols, you may also need to specify
@@ -94,9 +91,6 @@ private:
     //- Switch to enable the FluidStructureInteraction module
     bool FSIenabled_ = false;
 
-    //- Switch to enable the FluidFluid module
-    bool FFenabled_ = false;
-
     // NOTE: Add a switch for your new module here
 
     //- Interfaces
@@ -110,9 +104,6 @@ private:
 
     //- Fluid-Structure Interaction module object
     FSI::FluidStructureInteraction* FSI_ = NULL;
-
-    //- Fluid-Fluid module object
-    FF::FluidFluid* FF_ = NULL;
 
     // NOTE: Add here a pointer for your new module object
 

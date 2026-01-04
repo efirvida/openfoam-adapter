@@ -53,11 +53,6 @@ void preciceAdapter::Adapter::configFileRead()
         {
             FSIenabled_ = true;
         }
-
-        if (module == "FF")
-        {
-            FFenabled_ = true;
-        }
     }
 
     // Every interface is a subdictionary of "interfaces",
@@ -177,20 +172,9 @@ void preciceAdapter::Adapter::configFileRead()
         }
     }
 
-    if (FFenabled_)
-    {
-        FF_ = new FF::FluidFluid(mesh_);
-        if (!FF_->configure(preciceDict))
-        {
-            adapterInfo("There was an error while configuring the FF module",
-                        "error");
-            return;
-        }
-    }
-
     // NOTE: Create your module and read any options specific to it here
 
-    if (!FSIenabled_ && !FFenabled_) // NOTE: Add your new switch here
+    if (!FSIenabled_) // NOTE: Add your new switch here
     {
         adapterInfo("No module is enabled.", "error");
         return;
@@ -259,12 +243,6 @@ try
                 inModules++;
             }
 
-            // Add FF-related coupling data writers
-            if (FFenabled_ && FF_->addWriters(dataName, interface))
-            {
-                inModules++;
-            }
-
             if (inModules == 0)
             {
                 adapterInfo("I don't know how to write \"" + dataName
@@ -290,9 +268,6 @@ try
 
             // Add FSI-related coupling data readers
             if (FSIenabled_ && FSI_->addReaders(dataName, interface)) inModules++;
-
-            // Add FF-related coupling data readers
-            if (FFenabled_ && FF_->addReaders(dataName, interface)) inModules++;
 
             if (inModules == 0)
             {
@@ -1641,14 +1616,6 @@ void preciceAdapter::Adapter::teardown()
         DEBUG(adapterInfo("Destroying the FSI module..."));
         delete FSI_;
         FSI_ = NULL;
-    }
-
-    // Delete the FF module
-    if (NULL != FF_)
-    {
-        DEBUG(adapterInfo("Destroying the FF module..."));
-        delete FF_;
-        FF_ = NULL;
     }
 
     // NOTE: Delete your new module here
