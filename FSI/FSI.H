@@ -4,9 +4,7 @@
 #include "Interface.H"
 
 #include "FSI/Displacement.H"
-#include "FSI/DisplacementDelta.H"
 #include "FSI/Force.H"
-#include "FSI/Stress.H"
 #include "FSI/AngularVelocity.H"
 
 #include "fvCFD.H"

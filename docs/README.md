@@ -15,9 +15,8 @@ This preCICE adapter is a plug-in (function object) for OpenFOAM, which can work
 This adapter can read/write the following fields in a surface coupling setup:
 
 - Force (read + write)
-- Stress (write)
 - Displacement (read + write)
-- Displacement delta (read)
+- AngularVelocity (read)
 
 All features of preCICE are supported, including implicit coupling and nearest-projection mapping. Even though OpenFOAM is 3D, this adapter can also work in the 2D mode of preCICE, defining only one layer of interface nodes (automatically).
 

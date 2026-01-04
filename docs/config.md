@@ -72,15 +72,11 @@ The `locations` field is optional and its default value is `faceCenters` (with `
 For fluid-structure interaction, coupled quantities can be:
 
 - `writeData`:
-  - fluid participants: `Force`, `Stress` (force over area, consistent)
+  - fluid participants: `Force`
   - solid participants: `Displacement`
 - `readData`:
-  - fluid participants: `Displacement`, `DisplacementDelta` (difference to the displacement at the last coupling time window)
-  - solid participants: `Force`, `Stress`
-
-{% warning %}
-You will run into problems when you use `Displacement(Delta)` as write data set and execute RBF mappings in parallel. This would affect users who use OpenFOAM and the adapter as the Solid participant in order to compute solid mechanics with OpenFOAM (currently not officially supported at all). Have a look [at this issue on GitHub](https://github.com/precice/openfoam-adapter/issues/153) for details.
-{% endwarning %}
+  - fluid participants: `Displacement`, `AngularVelocity`
+  - solid participants: `Force`
 
 ## Configuration of the OpenFOAM case
 
@@ -95,7 +91,7 @@ Read the [OpenFOAM User Guide](https://www.openfoam.com/documentation/user-guide
 
 #### FSI
 
-- For `readData(Displacement)` or `DisplacementDelta`, you need the following:
+- For `readData(Displacement)`, you need the following:
   - `type movingWallVelocity` for the interface (e.g., `flap`) in `0/U`,
   - `type fixedValue` for the interface (e.g., `flap`) in the `0/pointDisplacement`, and
   - `solver displacementLaplacian` in the `constant/dynamicMeshDict`. The solver [`RBFMeshMotionSolver` from solids4foam is also known to work](https://github.com/precice/openfoam-adapter/pull/241), since the OpenFOAM adapter v1.2.0 and the solids4foam v2.0.

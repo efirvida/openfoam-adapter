@@ -160,27 +160,12 @@ bool preciceAdapter::FSI::FluidStructureInteraction::addWriters(std::string data
         );
         DEBUG(adapterInfo("Added writer: Force."));
     }
-    else if (dataName.find("DisplacementDelta") == 0)
-    {
-        interface->addCouplingDataWriter(
-            dataName,
-            new DisplacementDelta(mesh_, namePointDisplacement_, nameCellDisplacement_));
-        DEBUG(adapterInfo("Added writer: DisplacementDelta."));
-    }
     else if (dataName.find("Displacement") == 0)
     {
         interface->addCouplingDataWriter(
             dataName,
             new Displacement(mesh_, namePointDisplacement_, nameCellDisplacement_));
         DEBUG(adapterInfo("Added writer: Displacement."));
-    }
-    else if (dataName.find("Stress") == 0)
-    {
-        interface->addCouplingDataWriter(
-            dataName,
-            new Stress(mesh_, solverType_) /* TODO: Add any other arguments here */
-        );
-        DEBUG(adapterInfo("Added writer: Stress."));
     }
     else
     {
@@ -208,27 +193,12 @@ bool preciceAdapter::FSI::FluidStructureInteraction::addReaders(std::string data
         );
         DEBUG(adapterInfo("Added reader: Force."));
     }
-    else if (dataName.find("DisplacementDelta") == 0)
-    {
-        interface->addCouplingDataReader(
-            dataName,
-            new DisplacementDelta(mesh_, namePointDisplacement_, nameCellDisplacement_));
-        DEBUG(adapterInfo("Added reader: DisplacementDelta."));
-    }
     else if (dataName.find("Displacement") == 0)
     {
         interface->addCouplingDataReader(
             dataName,
             new Displacement(mesh_, namePointDisplacement_, nameCellDisplacement_));
         DEBUG(adapterInfo("Added reader: Displacement."));
-    }
-    else if (dataName.find("Stress") == 0)
-    {
-        interface->addCouplingDataReader(
-            dataName,
-            new Stress(mesh_, solverType_) /* TODO: Add any other arguments here */
-        );
-        DEBUG(adapterInfo("Added reader: Stress."));
     }
     else if (dataName.find("AngularVelocity") == 0)
     {
