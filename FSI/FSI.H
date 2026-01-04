@@ -7,6 +7,7 @@
 #include "FSI/DisplacementDelta.H"
 #include "FSI/Force.H"
 #include "FSI/Stress.H"
+#include "FSI/AngularVelocity.H"
 
 #include "fvCFD.H"
 
@@ -39,6 +40,12 @@ protected:
 
     //- Name of the force field
     std::string nameForce_ = "Force";
+
+    //- Axis of rotation (will be normalized) - used by AngularVelocity
+    Foam::vector rotationAxis_ = Foam::vector(0, 0, 1); // Default: Z-axis
+
+    //- Name of the angular velocity field (UniformDimensionedScalarField)
+    std::string nameOmegaField_ = "omega";
 
     /* TODO: Declare here any parameters that should be read from
     /  the configuration file. See CHT/CHT.H for reference.

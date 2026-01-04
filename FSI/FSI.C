@@ -86,6 +86,24 @@ bool preciceAdapter::FSI::FluidStructureInteraction::readConfig(const IOdictiona
     nameForce_ = FSIdict.lookupOrDefault<word>("nameForce", "Force");
     DEBUG(adapterInfo("    force field name : " + nameForce_));
 
+    // Read the rotation axis (used by AngularVelocity)
+    if (FSIdict.found("rotationAxis"))
+    {
+        rotationAxis_ = FSIdict.get<vector>("rotationAxis");
+        DEBUG(adapterInfo("    rotation axis : (" 
+            + std::to_string(rotationAxis_.x()) + ", "
+            + std::to_string(rotationAxis_.y()) + ", "
+            + std::to_string(rotationAxis_.z()) + ")"));
+    }
+    else
+    {
+        DEBUG(adapterInfo("    rotation axis : (0, 0, 1) [default - Z-axis]"));
+    }
+
+    // Read the name of the omega field (angular velocity)
+    nameOmegaField_ = FSIdict.lookupOrDefault<word>("nameOmegaField", "omega");
+    DEBUG(adapterInfo("    omega field name : " + nameOmegaField_));
+
     return true;
 }
 
@@ -211,6 +229,14 @@ bool preciceAdapter::FSI::FluidStructureInteraction::addReaders(std::string data
             new Stress(mesh_, solverType_) /* TODO: Add any other arguments here */
         );
         DEBUG(adapterInfo("Added reader: Stress."));
+    }
+    else if (dataName.find("AngularVelocity") == 0)
+    {
+        interface->addCouplingDataReader(
+            dataName,
+            new AngularVelocity(mesh_, nameOmegaField_, rotationAxis_)
+        );
+        DEBUG(adapterInfo("Added reader: AngularVelocity."));
     }
     else
     {
