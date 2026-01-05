@@ -77,12 +77,33 @@ preciceAdapter::Interface::Interface(
         patchIDs_.push_back(patchID);
     }
 
+    // Check if this is a global data interface (no patches)
+    isGlobalDataInterface_ = patchNames.empty();
+    
     // Configure the mesh (set the data locations)
     configureMesh(mesh, namePointDisplacement, nameCellDisplacement);
 }
 
 void preciceAdapter::Interface::configureMesh(const fvMesh& mesh, const std::string& namePointDisplacement, const std::string& nameCellDisplacement)
 {
+    // Handle global data interface (single vertex at origin)
+    if (isGlobalDataInterface_)
+    {
+        DEBUG(adapterInfo("Configuring global data interface with single vertex at origin"));
+        
+        numDataLocations_ = 1;
+        vertexIDs_.resize(1);
+        
+        // Single vertex at origin (0, 0, 0)
+        std::vector<double> vertices(dim_, 0.0);
+        
+        // Pass the single vertex to preCICE
+        precice_.setMeshVertices(meshName_, vertices, vertexIDs_);
+        
+        DEBUG(adapterInfo("Global data interface configured: 1 vertex at (0,0,0)"));
+        return;
+    }
+
     // The way we configure the mesh differs between meshes based on face centers
     // and meshes based on face nodes.
     // TODO: Reduce code duplication. In the meantime, take care to update

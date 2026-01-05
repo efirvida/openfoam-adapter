@@ -54,13 +54,11 @@ std::size_t preciceAdapter::FSI::AngularVelocity::write(double* buffer, bool mes
 
 void preciceAdapter::FSI::AngularVelocity::read(double* buffer, const unsigned int dim)
 {
-    if (dim != 1)
-    {
-        adapterInfo("AngularVelocity expects a scalar value (omega in rad/s), but dim=" + std::to_string(dim), "error");
-        return;
-    }
+    // For global data (single vertex), buffer contains exactly one scalar value
+    // The dim parameter is the spatial dimension (2D/3D), not relevant for scalars
+    // For scalar data, preCICE provides 1 value per vertex
     
-    // Read the first value from the buffer
+    // Read the first (and only) value from the buffer
     omegaField_->value() = buffer[0];
     
     DEBUG(adapterInfo("Received angular velocity: " + std::to_string(buffer[0]) + " rad/s ("
@@ -69,8 +67,10 @@ void preciceAdapter::FSI::AngularVelocity::read(double* buffer, const unsigned i
 
 bool preciceAdapter::FSI::AngularVelocity::isLocationTypeSupported(const bool meshConnectivity) const
 {
-    return (this->locationType_ == LocationType::faceCenters || 
-            this->locationType_ == LocationType::faceNodes);
+    // AngularVelocity is global data - it's a single scalar value not associated
+    // with specific mesh locations. Support all location types since we only
+    // use a single vertex at origin for global data exchange.
+    return true;
 }
 
 std::string preciceAdapter::FSI::AngularVelocity::getDataName() const

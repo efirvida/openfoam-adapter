@@ -57,6 +57,9 @@ protected:
     //- Reset the displacement during interface definition
     bool restartFromDeformed_;
 
+    //- Flag for global data interface (no patches, single vertex at origin)
+    bool isGlobalDataInterface_ = false;
+
     // Simulation dimension
     unsigned int dim_;
 
