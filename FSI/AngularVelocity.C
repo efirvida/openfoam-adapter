@@ -16,22 +16,28 @@ preciceAdapter::FSI::AngularVelocity::AngularVelocity(
     
     const word fieldName(omegaFieldName_);
     
-    // Check if an omega field with the requested name exists.
+    // Register the omega field in Time, not in mesh.
+    // This ensures that preciceOmega (which reads from Time) can find it.
+    const Time& runTime = mesh_.time();
+    
+    // Check if an omega field with the requested name exists in Time registry.
     // If yes, bind omegaField_ to that field.
     // If not, create it.
-    if (mesh_.foundObject<uniformDimensionedScalarField>(fieldName))
+    if (runTime.foundObject<uniformDimensionedScalarField>(fieldName))
     {
         omegaField_ = 
             &const_cast<uniformDimensionedScalarField&>(
-                mesh_.lookupObject<uniformDimensionedScalarField>(fieldName));
+                runTime.lookupObject<uniformDimensionedScalarField>(fieldName));
+        
+        DEBUG(adapterInfo("Found existing omega field '" + omegaFieldName_ + "' in Time registry"));
     }
     else
     {
         omegaFieldOwning_.reset(new uniformDimensionedScalarField(
             IOobject(
                 fieldName,
-                mesh_.time().constant(),
-                mesh_,
+                runTime.constant(),
+                runTime,  // Register in Time, not mesh
                 IOobject::NO_READ,
                 IOobject::AUTO_WRITE
             ),
@@ -43,6 +49,8 @@ preciceAdapter::FSI::AngularVelocity::AngularVelocity(
         ));
 
         omegaField_ = omegaFieldOwning_.get();
+        
+        DEBUG(adapterInfo("Created omega field '" + omegaFieldName_ + "' in Time registry"));
     }
 }
 
