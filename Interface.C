@@ -226,8 +226,8 @@ void preciceAdapter::Interface::configureMesh(const fvMesh& mesh, const std::str
             globalNumDataLocations_ += gatherCounts_[i] / dim_;
         }
 
-        Pout << "Adapter [Procid " << Pstream::myProcNo() << "]: Local vertices (faceCenters): "
-             << localVertexCount << ", Global: " << globalNumDataLocations_ << endl;
+        DEBUG(Pout << "Adapter [Procid " << Pstream::myProcNo() << "]: Local vertices (faceCenters): "
+                   << localVertexCount << ", Global: " << globalNumDataLocations_ << endl);
 
         // Step 3: Gather all vertices to rank 0
         if (Pstream::master())
@@ -259,8 +259,8 @@ void preciceAdapter::Interface::configureMesh(const fvMesh& mesh, const std::str
                 }
             }
 
-            Pout << "Adapter [Master]: Registering " << globalNumDataLocations_
-                 << " global vertices (faceCenters) with preCICE" << endl;
+            DEBUG(Pout << "Adapter [Master]: Registering " << globalNumDataLocations_
+                       << " global vertices (faceCenters) with preCICE" << endl);
 
             precice_.setMeshVertices(meshName_, globalDataBuffer_, globalVertexIDs_);
         }
@@ -356,8 +356,8 @@ void preciceAdapter::Interface::configureMesh(const fvMesh& mesh, const std::str
             globalNumDataLocations_ += gatherCounts_[i] / dim_; // Convert back to vertex count
         }
 
-        Pout << "Adapter [Procid " << Pstream::myProcNo() << "]: Local vertices: " << localVertexCount
-             << ", Global vertices: " << globalNumDataLocations_ << endl;
+        DEBUG(Pout << "Adapter [Procid " << Pstream::myProcNo() << "]: Local vertices: " << localVertexCount
+                   << ", Global vertices: " << globalNumDataLocations_ << endl);
 
         // Step 3: Gather all vertices to rank 0
         if (Pstream::master())
@@ -392,8 +392,8 @@ void preciceAdapter::Interface::configureMesh(const fvMesh& mesh, const std::str
                 }
             }
 
-            Pout << "Adapter [Master]: Registering " << globalNumDataLocations_
-                 << " global vertices with preCICE" << endl;
+            DEBUG(Pout << "Adapter [Master]: Registering " << globalNumDataLocations_
+                       << " global vertices with preCICE" << endl);
 
             // Only master registers mesh with preCICE
             precice_.setMeshVertices(meshName_, globalDataBuffer_, globalVertexIDs_);
@@ -471,8 +471,8 @@ void preciceAdapter::Interface::configureMesh(const fvMesh& mesh, const std::str
                     }
                 }
 
-                Pout << "Adapter [Master]: Registering " << globalTriVertIDs.size() / 3
-                     << " global triangles with preCICE" << endl;
+                DEBUG(Pout << "Adapter [Master]: Registering " << globalTriVertIDs.size() / 3
+                           << " global triangles with preCICE" << endl);
                 precice_.setMeshTriangles(meshName_, globalTriVertIDs);
             }
         }
@@ -705,7 +705,7 @@ void preciceAdapter::Interface::readCouplingData(double relativeReadTime)
                 relativeReadTime,
                 {globalDataBuffer_.data(), globalReadSize});
 
-            Pout << "Adapter [Master]: Read " << globalReadSize << " values from preCICE" << endl;
+            DEBUG(Pout << "Adapter [Master]: Read " << globalReadSize << " values from preCICE" << endl);
         }
 
         // Step 2: Scatter data from master to all ranks
@@ -741,8 +741,8 @@ void preciceAdapter::Interface::readCouplingData(double relativeReadTime)
             dataBuffer_[j] = myData[j];
         }
 
-        Pout << "Adapter [Procid " << Pstream::myProcNo() << "]: Received "
-             << myData.size() << " values via scatter" << endl;
+        DEBUG(Pout << "Adapter [Procid " << Pstream::myProcNo() << "]: Received "
+                   << myData.size() << " values via scatter" << endl);
 
         // Step 3: Apply data to OpenFOAM fields
         couplingDataReader->read(dataBuffer_.data(), dim_);
@@ -768,8 +768,8 @@ void preciceAdapter::Interface::writeCouplingData()
         // Step 1: Each rank fills its local buffer
         auto nWrittenData = couplingDataWriter->write(dataBuffer_.data(), meshConnectivity_, dim_);
 
-        Pout << "Adapter [Procid " << Pstream::myProcNo() << "]: Local buffer has "
-             << nWrittenData << " values to send" << endl;
+        DEBUG(Pout << "Adapter [Procid " << Pstream::myProcNo() << "]: Local buffer has "
+                   << nWrittenData << " values to send" << endl);
 
         // Step 2: Gather all local buffers to master
         // Convert to List for Pstream compatibility
@@ -804,7 +804,7 @@ void preciceAdapter::Interface::writeCouplingData()
                 }
             }
 
-            Pout << "Adapter [Master]: Writing " << globalSize << " values to preCICE" << endl;
+            DEBUG(Pout << "Adapter [Master]: Writing " << globalSize << " values to preCICE" << endl);
 
             // Master writes to preCICE
             precice_.writeData(

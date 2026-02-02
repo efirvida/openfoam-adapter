@@ -127,7 +127,7 @@ std::size_t preciceAdapter::FSI::ForceBase::writeToBuffer(double* buffer,
                                                           volVectorField& forceField,
                                                           const unsigned int dim) const
 {
-    Pout << "Adapter FSI [Procid " << Pstream::myProcNo() << "]: ForceBase::writeToBuffer() START" << endl;
+    DEBUG(Pout << "Adapter FSI [Procid " << Pstream::myProcNo() << "]: ForceBase::writeToBuffer() START" << endl);
 
     // Compute forces. See the Forces function object.
     // Stress tensor boundary field
@@ -180,11 +180,11 @@ std::size_t preciceAdapter::FSI::ForceBase::writeToBuffer(double* buffer,
                     forceField.boundaryField()[patchID][i][d];
         }
 
-        Pout << "Adapter FSI [Procid " << Pstream::myProcNo() << "]: ForceBase::writeToBuffer() patch " << patchID
-             << " bufferIndex=" << bufferIndex << endl;
+        DEBUG(Pout << "Adapter FSI [Procid " << Pstream::myProcNo() << "]: ForceBase::writeToBuffer() patch " << patchID
+                   << " bufferIndex=" << bufferIndex << endl);
     }
 
-    Pout << "Adapter FSI [Procid " << Pstream::myProcNo() << "]: ForceBase::writeToBuffer() END, total=" << bufferIndex << endl;
+    DEBUG(Pout << "Adapter FSI [Procid " << Pstream::myProcNo() << "]: ForceBase::writeToBuffer() END, total=" << bufferIndex << endl);
     return bufferIndex;
 }
 
