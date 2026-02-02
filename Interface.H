@@ -51,7 +51,7 @@ protected:
     //- Vector of CouplingDataWriters
     std::vector<CouplingDataUser*> couplingDataWriters_;
 
-    //Switch for faceTriangulation (nearest projection)
+    // Switch for faceTriangulation (nearest projection)
     bool meshConnectivity_;
 
     //- Reset the displacement during interface definition
@@ -62,6 +62,21 @@ protected:
 
     // Simulation dimension
     unsigned int dim_;
+
+    //- Global total number of data locations (sum across all ranks, only valid on master)
+    int globalNumDataLocations_ = 0;
+
+    //- Local data count per rank in number of scalar values (for Gatherv/Scatterv)
+    List<int> gatherCounts_;
+
+    //- Displacement offsets per rank for Gatherv/Scatterv (in scalar values)
+    List<int> gatherDisplacements_;
+
+    //- Global vertex IDs assigned by preCICE (only valid on master)
+    std::vector<int> globalVertexIDs_;
+
+    //- Global data buffer for gather/scatter operations (only valid on master)
+    std::vector<double> globalDataBuffer_;
 
     //- Extracts the locations of the face centers or face nodes
     //  and exposes them to preCICE with setMeshVertices
