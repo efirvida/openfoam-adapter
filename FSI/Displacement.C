@@ -7,10 +7,10 @@ preciceAdapter::FSI::Displacement::Displacement(
     const std::string namePointDisplacement,
     const std::string nameCellDisplacement)
 : pointDisplacement_(
-    namePointDisplacement == "unused"
-        ? nullptr
-        : const_cast<pointVectorField*>(
-            &mesh.lookupObject<pointVectorField>(namePointDisplacement))),
+      namePointDisplacement == "unused"
+          ? nullptr
+          : const_cast<pointVectorField*>(
+                &mesh.lookupObject<pointVectorField>(namePointDisplacement))),
   cellDisplacement_(
       const_cast<volVectorField*>(
           &mesh.lookupObject<volVectorField>(nameCellDisplacement))),
@@ -93,6 +93,8 @@ std::size_t preciceAdapter::FSI::Displacement::write(double* buffer, bool meshCo
 // return the displacement to use later in the velocity?
 void preciceAdapter::FSI::Displacement::read(double* buffer, const unsigned int dim)
 {
+    Pout << "Adapter FSI [Procid " << Pstream::myProcNo() << "]: Displacement::read() START" << endl;
+
     int bufferIndex = 0;
     for (unsigned int j = 0; j < patchIDs_.size(); j++)
     {
@@ -137,7 +139,20 @@ void preciceAdapter::FSI::Displacement::read(double* buffer, const unsigned int 
                     pointDisplacementFluidPatch[i][d] = buffer[bufferIndex++];
             }
         }
+
+        Pout << "Adapter FSI [Procid " << Pstream::myProcNo() << "]: Displacement::read() patch " << patchID
+             << " bufferIndex=" << bufferIndex << endl;
     }
+
+    // Synchronize boundaries (including processor boundaries) across all ranks.
+    // This is a collective operation that ensures consistency before mesh motion.
+    if (pointDisplacement_ != nullptr)
+    {
+        pointDisplacement_->correctBoundaryConditions();
+    }
+    cellDisplacement_->correctBoundaryConditions();
+
+    Pout << "Adapter FSI [Procid " << Pstream::myProcNo() << "]: Displacement::read() END, total bufferIndex=" << bufferIndex << endl;
 }
 
 bool preciceAdapter::FSI::Displacement::isLocationTypeSupported(const bool meshConnectivity) const
