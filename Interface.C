@@ -97,6 +97,43 @@ void preciceAdapter::Interface::configureMesh(const fvMesh& mesh, const std::str
         // Pass the single vertex to preCICE
         precice_.setMeshVertices(meshName_, vertices, vertexIDs_);
 
+        // Configure global variables for parallel read/write operations
+        // For global data interface, only master has the vertex
+        if (Pstream::parRun())
+        {
+            gatherCounts_.resize(Pstream::nProcs(), 0);
+            gatherDisplacements_.resize(Pstream::nProcs(), 0);
+            
+            // Only master has the single vertex
+            if (Pstream::master())
+            {
+                gatherCounts_[0] = dim_;  // One vertex * dim_ coordinates
+                globalNumDataLocations_ = 1;
+                globalDataBuffer_.resize(dim_);
+                globalVertexIDs_.resize(1);
+                globalVertexIDs_[0] = vertexIDs_[0];
+            }
+            else
+            {
+                // Non-master ranks have no data locations for global interface
+                numDataLocations_ = 0;
+                vertexIDs_.clear();
+            }
+            
+            // Broadcast gatherCounts to all ranks
+            Pstream::broadcast(gatherCounts_);
+        }
+        else
+        {
+            // Serial run: simple setup
+            globalNumDataLocations_ = 1;
+            globalDataBuffer_.resize(dim_);
+            globalVertexIDs_.resize(1);
+            globalVertexIDs_[0] = vertexIDs_[0];
+            gatherCounts_.resize(1, dim_);
+            gatherDisplacements_.resize(1, 0);
+        }
+
         DEBUG(adapterInfo("Global data interface configured: 1 vertex at (0,0,0)"));
         return;
     }
