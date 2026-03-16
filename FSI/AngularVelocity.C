@@ -1,4 +1,6 @@
 #include "AngularVelocity.H"
+#include "Pstream.H"
+
 #include "mathematicalConstants.H"
 
 using namespace Foam;
@@ -62,15 +64,19 @@ std::size_t preciceAdapter::FSI::AngularVelocity::write(double* buffer, bool mes
 
 void preciceAdapter::FSI::AngularVelocity::read(double* buffer, const unsigned int dim)
 {
-    // For global data (single vertex), buffer contains exactly one scalar value
-    // The dim parameter is the spatial dimension (2D/3D), not relevant for scalars
-    // For scalar data, preCICE provides 1 value per vertex
+    // Only the master rank owns the single global vertex and has a valid buffer.
+    if (!Pstream::parRun() || Pstream::master())
+    {
+        omegaField_->value() = buffer[0];
+    }
+    // Broadcast the value to all secondary ranks.
+    if (Pstream::parRun())
+    {
+        Pstream::broadcast(omegaField_->value());
+    }
     
-    // Read the first (and only) value from the buffer
-    omegaField_->value() = buffer[0];
-    
-    DEBUG(adapterInfo("Received angular velocity: " + std::to_string(buffer[0]) + " rad/s ("
-                      + std::to_string(buffer[0] * 60.0 / (2.0 * pi)) + " RPM)"));
+    DEBUG(adapterInfo("Received angular velocity: " + std::to_string(omegaField_->value()) + " rad/s ("
+                      + std::to_string(omegaField_->value() * 60.0 / (2.0 * pi)) + " RPM)"));
 }
 
 bool preciceAdapter::FSI::AngularVelocity::isLocationTypeSupported(const bool meshConnectivity) const
